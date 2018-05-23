@@ -5,7 +5,6 @@ contract Baccarat {
     uint8 constant private CARD_TOTAL = 52;
 	mapping(uint256 => Card[]) private cards; 
 
-	event Shuffle();
     event Deal(
 		uint256 indexed value, 
 		uint256 protocol, 
@@ -13,8 +12,6 @@ contract Baccarat {
 		uint256 random,
 		uint256 index
 	);
-	event Num(uint256 num);
-    event Seed(uint256 seed,bytes32 blockhash, uint now, address coinbase, uint difficulty);
 	struct Card {
 	    bytes1 status;
 		uint256 value;

@@ -3,7 +3,7 @@ from web3 import Web3, HTTPProvider
 import time
 from web3.utils.events import get_event_data
 
-ContractAddress = '0xc4da7fad8b3c07add729eb26b3fa56898ef2a7a0'
+ContractAddress = '0x144ded71d8a9898e9ede59a2b9eef86e19cc9676'
 abiFile = "build/contracts/Baccarat.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
@@ -28,8 +28,9 @@ def log_loop(event_filter, poll_interval):
         for event in event_filter.get_new_entries():
             handle_event(event)
         time.sleep(poll_interval)
-block_filter = w3.eth.filter({'fromBlock':'latest', 'address': ContractAddress})
-# block_filter = contract.events.Deal.createFilter(fromBlock='latest');
+#block_filter = w3.eth.filter({'fromBlock':'latest', 'address': ContractAddress})
+block_filter = contract.events.Deal.createFilter(fromBlock='latest',
+        argument_filters={'value':2});
 #block_filter = contract.events.Deal();
 #print(block_filter)
 log_loop(block_filter, 2)

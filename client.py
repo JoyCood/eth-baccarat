@@ -1,7 +1,7 @@
 import os, json, time
 from web3 import Web3, HTTPProvider
 
-ContractAddress = '0xc4da7fad8b3c07add729eb26b3fa56898ef2a7a0'
+ContractAddress = '0x144ded71d8a9898e9ede59a2b9eef86e19cc9676'
 abiFile = "build/contracts/Baccarat.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)

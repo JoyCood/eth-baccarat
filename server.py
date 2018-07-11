@@ -3,7 +3,7 @@ from web3 import Web3, HTTPProvider
 import time
 from web3.utils.events import get_event_data
 
-ContractAddress = '0x144ded71d8a9898e9ede59a2b9eef86e19cc9676'
+ContractAddress = '0xd2fc6396a9ad8f922f9913f20319875d1e027679'
 abiFile = "build/contracts/Baccarat.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
@@ -15,24 +15,31 @@ contract = w3.eth.contract(address=dbAddress, abi=abiJson['abi'])
 #print(result)
 
 def handle_event(event):
-    receipt = w3.eth.getTransactionReceipt(event['transactionHash'])
-    receipt = contract.events.Deal().processReceipt(receipt)
+    receipt = w3.eth.waitForTransactionReceipt(event['transactionHash'])
+    #print(receipt)
+    receipt = contract.events.Deal_Card().processReceipt(receipt)
     data = receipt[0]['args']
-    print(w3.toHex(receipt[0]['transactionHash']))
-    print("card value:{}, protocol:{}, upper:{}, random:{}, index:{}".format(data['value'], data['protocol'], data['upper'], data['random'], data['index']))
+    print(data)
+    #print(w3.toHex(receipt[0]['transactionHash']))
+    #print("card value:{}, protocol:{}, upper:{}, random:{}, index:{}".format(data['value'], data['protocol'], data['upper'], data['random'], data['index']))
     print("\n\n")
 
 def log_loop(event_filter, poll_interval):
     while True:
-        #print(event_filter.__dict__)
         for event in event_filter.get_new_entries():
             handle_event(event)
         time.sleep(poll_interval)
 #block_filter = w3.eth.filter({'fromBlock':'latest', 'address': ContractAddress})
-block_filter = contract.events.Deal.createFilter(fromBlock='latest',
-        argument_filters={'value':2});
+
+#block_filter = contract.events.Deal.createFilter(fromBlock='latest',
+#        argument_filters={'value':2});
+
+block_filter = contract.events.Deal_Card.createFilter(fromBlock='latest');
+
 #block_filter = contract.events.Deal();
 #print(block_filter)
+
+#block_filter = w3.eth.filter({"address":ContractAddress}) 
 log_loop(block_filter, 2)
 
 """ AttributeDict({

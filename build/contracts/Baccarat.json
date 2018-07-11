@@ -1,19 +1,19 @@
 {
-  "abi": 
-  [
+	"abi":
+	[
 	{
 		"constant": false,
 		"inputs": [
 			{
-				"name": "upper",
+				"name": "room_id",
 				"type": "uint256"
 			}
 		],
-		"name": "random",
+		"name": "shuffle2",
 		"outputs": [
 			{
-				"name": "randomNumber",
-				"type": "uint256"
+				"name": "",
+				"type": "bool"
 			}
 		],
 		"payable": false,
@@ -24,15 +24,15 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "roomId",
+				"name": "room_id",
 				"type": "uint256"
 			}
 		],
-		"name": "deal",
+		"name": "deal_card",
 		"outputs": [
 			{
 				"name": "",
-				"type": "uint256"
+				"type": "uint8"
 			}
 		],
 		"payable": false,
@@ -42,36 +42,11 @@
 	{
 		"constant": false,
 		"inputs": [],
-		"name": "maxRandom",
-		"outputs": [
-			{
-				"name": "randomNumber",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "roomId",
-				"type": "uint256"
-			}
-		],
-		"name": "shuffle",
+		"name": "test",
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [],
-		"name": "Shuffle",
-		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -109,12 +84,12 @@
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
-				"name": "num",
+				"indexed": true,
+				"name": "value",
 				"type": "uint256"
 			}
 		],
-		"name": "Num",
+		"name": "Shuffle",
 		"type": "event"
 	},
 	{
@@ -122,33 +97,41 @@
 		"inputs": [
 			{
 				"indexed": false,
-				"name": "seed",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"name": "blockhash",
-				"type": "bytes32"
-			},
-			{
-				"indexed": false,
-				"name": "now",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"name": "coinbase",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"name": "difficulty",
-				"type": "uint256"
+				"name": "value",
+				"type": "uint8"
 			}
 		],
-		"name": "Seed",
+		"name": "Test",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "card",
+				"type": "uint8"
+			},
+			{
+				"indexed": false,
+				"name": "card_left",
+				"type": "uint16"
+			}
+		],
+		"name": "Deal_Card",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "num",
+				"type": "uint16"
+			}
+		],
+		"name": "Random_Num",
 		"type": "event"
 	}
 ]
 }
-

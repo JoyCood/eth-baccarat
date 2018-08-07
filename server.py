@@ -2,8 +2,8 @@ import os, json
 from web3 import Web3, HTTPProvider
 import time
 from web3.utils.events import get_event_data
+from config import ContractAddress
 
-ContractAddress = '0xd2fc6396a9ad8f922f9913f20319875d1e027679'
 abiFile = "build/contracts/Baccarat.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
@@ -17,7 +17,7 @@ contract = w3.eth.contract(address=dbAddress, abi=abiJson['abi'])
 def handle_event(event):
     receipt = w3.eth.waitForTransactionReceipt(event['transactionHash'])
     #print(receipt)
-    receipt = contract.events.Deal_Card().processReceipt(receipt)
+    receipt = contract.events.Random_Num().processReceipt(receipt)
     data = receipt[0]['args']
     print(data)
     #print(w3.toHex(receipt[0]['transactionHash']))
@@ -34,7 +34,7 @@ def log_loop(event_filter, poll_interval):
 #block_filter = contract.events.Deal.createFilter(fromBlock='latest',
 #        argument_filters={'value':2});
 
-block_filter = contract.events.Deal_Card.createFilter(fromBlock='latest');
+block_filter = contract.events.Random_Num.createFilter(fromBlock='latest')
 
 #block_filter = contract.events.Deal();
 #print(block_filter)

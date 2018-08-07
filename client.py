@@ -3,14 +3,14 @@ import os
 import json
 import time
 from web3 import Web3, HTTPProvider
+from config import ContractAddress
 
-LEVEL = logging.ERROR
+LEVEL = logging.INFO
 FORMAT = "[%(levelname)s]: %(asctime)-15s %(message)s"
 DATEFMT = '%Y-%m-d %H:%M:%S'
 logging.basicConfig(level=LEVEL, format=FORMAT, datefmt=DATEFMT)
 logger = logging.getLogger()
 
-ContractAddress = '0xd2fc6396a9ad8f922f9913f20319875d1e027679'
 abiFile = "build/contracts/Baccarat.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
@@ -19,13 +19,11 @@ dbAddress = w3.toChecksumAddress(ContractAddress)
 contract = w3.eth.contract(address=dbAddress, abi=abiJson['abi'])
 account = w3.eth.accounts[0]
 
+logger.info(account)
+
 def test():
-    txHash = contract.functions.test().transact({
-        'from': account,
-        'gas': 3000000
-    })
-    receipt = w3.eth.waitForTransactionReceipt(txHash)
-    print(receipt)
+    result = contract.functions.test.call()
+    print(result)
 
 #------------------------
 def retry_send_transact(txHash):
@@ -47,9 +45,9 @@ def retry_send_transact(txHash):
 
 #洗牌
 def shuffle(room_id):
-    txHash = contract.functions.shuffle2(room_id).transact({
+    txHash = contract.functions.shuffle(room_id).transact({
                  'from': account,
-                 'gas': 3000000
+                 'gas': 4500000
              })
     receipt = w3.eth.waitForTransactionReceipt(txHash)
     if receipt['status'] == 0:
@@ -77,6 +75,8 @@ def deal_card(room_id):
             w3.toHex(receipt['transactionHash'])
         ))
 
+test()
+raise ValueError('stop')
 #begin shuffle
 CARD_TOTAL = 416
 ROOM_ID = 7
@@ -86,15 +86,6 @@ while True:
         CARD_TOTAL = 416;
     deal_card(ROOM_ID)
     CARD_TOTAL = CARD_TOTAL - 1
-    time.sleep(1)
+    time.sleep(4)
 
-#res = contract.functions.deal(1).call()#transact({'from':w3.eth.accounts[0]})
-#result = contract.functions.deal().call()
-#print(result)
-
-#tx_hash = contract.functions.deal().transact({'from':w3.eth.accounts[0]})
-#receipt = w3.eth.getTransactionReceipt(tx_hash)
-#print(receipt)
-#result = contract.events.Deal().processReceipt(receipt)
-#print(result)
 #result = contract.functions.deal().call()

@@ -1,9 +1,9 @@
 pragma solidity ^0.4.21;
 
 contract Baccarat {
+	address private owner;
 	uint256 seed;
-    uint8 constant private CARD_TOTAL = 52;
-	//mapping(uint256 => Card[]) private cards; 
+	uint256 private random_counter = 0;
 
     event Deal(
 		uint256 indexed value, 
@@ -24,9 +24,6 @@ contract Baccarat {
 	    uint8   winner
 	);
 	*/
-	event Test(
-	    uint8 value    
-	);
 	
 	event Deal_Card(
 	    uint8 card,
@@ -34,153 +31,123 @@ contract Baccarat {
 	);
 	
 	event Random_Num(
-	    uint16 num
+	    uint16 index,
+		uint16 upper,
+		uint256 num,
+		uint256 counter,
+		uint256 _counter
 	);
-	
-	struct Card {
-	    bytes1 status;
-		uint256 value;
-	}
-	
-	int8[] x = [int8(10)];
-	
-	
+
+	event Hash_String(bytes hash_string);
+    
 	mapping(uint256 => uint8[]) private card_list;
-/*
-	function shuffle(uint256 roomId) internal {
-		delete cards[roomId];
-		emit Shuffle(roomId);
 
-	    for(uint256 i=0; i<CARD_TOTAL; i++) {
-			Card memory card;
-			card.status = bytes1(0);
-			card.value = i+1;
-		    cards[roomId].push(card);	
-		}
-	}
-*/
-	
-	function shuffle2(uint256 room_id) public returns(bool){
-	    delete card_list[room_id];
-	    card_list[room_id] = [
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61,
-	    
-	        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-	        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-	        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
-	        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61
-	    ];
-	    
-	    return true;
+	modifier onlyOwner() {
+	    require(owner == msg.sender);
+		_;
 	}
 
-	function maxRandom() internal returns (uint256) {
-	    seed = uint256(keccak256(
-		    seed,
-			block.blockhash(block.number - 1),
-			now,
-			block.coinbase,
-			block.difficulty
-			
-		));
+	constructor() public {
+	    owner = msg.sender;
+	}
+
+    /**
+	 * @dev shuffle card.
+	 * @param room_id (string) - game room id.
+	 */
+	function shuffle(uint256 room_id) public onlyOwner {
+		delete card_list[room_id];
+        card_list[room_id] = [
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D,
+
+			0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+			0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D,
+			0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D,
+			0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D
+	    ];	
+	}
+
+	function maxRandom(uint256 _counter) internal returns (uint256) {
+	   bytes memory rand_string = abi.encodePacked(
+				seed,
+				blockhash(block.number - 1),
+				now,
+				block.coinbase,
+				block.difficulty,
+				random_counter,
+				_counter
+	 	    );
+
+		emit Hash_String(rand_string);
+
+	    seed = uint256(keccak256(rand_string));
+        random_counter += 1; 
 		return seed;
 	}
 
-	function random(uint16 upper) internal returns (uint16) {
-	    uint256 num = maxRandom();
-	    return uint16(num % upper);
+	function random(uint16 upper, uint256 _counter) internal returns (uint16) {
+	    uint256 num = maxRandom(_counter);
+	    uint16 x = uint16(num % upper);
+		emit Random_Num(x, upper, num, random_counter, _counter);
+		return x;
 	}
-/*
-	function deal(uint256 roomId) internal returns(uint256) {
-	    Card memory card;
-	    
-		if(cards[roomId].length == 0) {
-			emit Deal(0, 88, 0, 0, 0);
-			return;
-		}else if (cards[roomId].length == 1) {
-		    card = cards[roomId][0];
-		    emit Deal(card.value, 100, 1, 0, 0);
-		    delete cards[roomId][0];
-		    cards[roomId].length--;
-		    return card.value;
-		}
-		
-		uint16 upper = uint16(cards[roomId].length);
-		uint8 _random = 0;
-		while (_random == 0) {
-		    _random = random(upper);
-		}
-        uint8 index = _random - 1;
-		card  = cards[roomId][index];
-		
-		emit Deal(card.value, 2, upper, _random, index);
-    
-		for(uint256 i=index; i<(upper-1); i++) {
-	        cards[roomId][i] = cards[roomId][i+1];
-		}
-		
-		delete cards[roomId][upper-1];
-		cards[roomId].length--;
 
-		return card.value; 
-	}
-*/
-    function get_card(uint256 room_id) internal returns(uint8) {
+    function get_card(uint256 room_id, uint256 loop_counter) internal returns(uint8) {
         uint8 card = 0;
         
         if (card_list[room_id].length == 0) {
             return card;
-        } else if (card_list[room_id].length == 1) { //avoid infinite loop to get random number
+        } else if (card_list[room_id].length == 1) { //avoid infinite loop to get a random number
             card = card_list[room_id][0];
             remove_card(room_id, 0);
-            return card;
+            return 10;
         }
         
         uint16 upper = uint16(card_list[room_id].length);
         uint16 random_num = 0;
-        
         while(random_num == 0) {
-            random_num = random(upper);
+            random_num = random(upper, loop_counter);
         }
         
         uint16 index = random_num - 1;
         card = card_list[room_id][index];
-        
+        //emit Random_Num(random_num); 
         for(uint16 i=index; i<(upper-1); i++) {
-            card_list[room_id][i] = card_list[room_id][i+1];
+			//emit Random_Num(i, upper);
+           // card_list[room_id][i] = card_list[room_id][i+1];
         }
         
         remove_card(room_id, (upper-1));
@@ -192,29 +159,29 @@ contract Baccarat {
         delete card_list[room_id][index];
         card_list[room_id].length--;
     }
-    
-    function test() public  {
-        /*
-        for(uint8 i=0; i<1; i++) {
-            emit Test(uint8(1));
-        }  
-        */
-        emit Test(uint8(x.length)); //this event not be executed success because of below reason: 
-        x.length--; //decrement array's length before delete it's element will raise an exception
-        delete x[0];
-    }
 
-    function deal_card(uint256 room_id) public returns(uint8){
+    function deal_card(uint256 room_id) public onlyOwner returns (uint8) {
+		/*
         uint8[] memory banker_cards = new uint8[](3);
         uint8[] memory player_cards = new uint8[](3);
         uint8 value = get_card(room_id);
         uint16 card_left = uint16(card_list[room_id].length);
         emit Deal_Card(value, card_left);
-        return value;
-        //for(uint8 i=0; i<2; i++) {
-        //    banker_cards[0] = get_card(room_id);
-            //player_cards[0] = 11;//get_card(room_id);
-        //}
+	   */
+	    uint256 loop_counter = 0; 
+        for(uint8 i=0; i<4; i++) {
+			loop_counter += 1;
+			get_card(room_id, loop_counter);
+			/*
+			emit Deal_Card(
+				get_card(room_id),
+			   	uint16(card_list[room_id].length)
+			);
+		   */
+            //banker_cards[i] = get_card(room_id);
+            //player_cards[i] = get_card(room_id);
+        }
+		return 0;
         
         /*
         uint8 need_more_card = need_deal_card_again(banker_cards, player_cards);
@@ -240,7 +207,11 @@ contract Baccarat {
         */
     }
     
-    function need_deal_card_again(uint8[] banker_cards, uint8[] player_cards) internal pure returns(uint8){
+    function need_deal_card_again(uint8[] banker_cards, uint8[] player_cards) 
+	    internal 
+		pure 
+		returns (uint8)
+	{
         uint8 banker_cards_length = 0;
         uint8 player_cards_length = 0;
         uint8 banker_point = compute_final_point(banker_cards);
@@ -330,7 +301,7 @@ contract Baccarat {
         return 0;
     }
     
-    function get_last_card(uint8[] memory cards) internal pure returns(uint8) {
+    function get_last_card(uint8[] memory cards) internal pure returns (uint8) {
         for (uint256 i = cards.length; i<=0; i--) {
             if (cards[i] > 0) {
                 return cards[i];
@@ -339,7 +310,7 @@ contract Baccarat {
         return 0;
     }
     
-    function compute_final_point(uint8[] cards) internal pure returns(uint8) {
+    function compute_final_point(uint8[] cards) internal pure returns (uint8) {
         uint8 result = 0;
         for(uint8 i=0; i<cards.length; i++) {
             result += compute_card_point(cards[i]);
@@ -347,17 +318,18 @@ contract Baccarat {
         return result%10;
     }
     
-    function compute_card_point(uint8 card) internal pure returns(uint8) {
+    function compute_card_point(uint8 card) internal pure returns (uint8) {
         if ((card & 15) > 9) {
             return 0;
         } 
         return card & 15;
     }
     
-    function compare_card(
-        uint8[] memory banker_cards, 
-        uint8[] memory player_cards
-    ) internal pure returns(uint8) {
+    function compare_card(uint8[] memory banker_cards, uint8[] memory player_cards) 
+	    internal 
+		pure 
+		returns (uint8) 
+	{
         uint8 banker_point = compute_final_point(banker_cards);
         uint8 player_point = compute_final_point(player_cards);
         if (banker_point > player_point) { // banker win

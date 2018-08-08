@@ -65,7 +65,7 @@ contract Baccarat3 {
 	mapping(uint256 => uint8[][POKERS_NUM]) public cards;
 
 	event LogShuffle(uint256 shuffle);
-	event LogCards(uint256 pokersNum, uint256 index, uint8[] card);
+	event LogCards(uint8[] card);
 
 	function shuffle(uint256 _roomId) 
 	    public 
@@ -93,6 +93,7 @@ contract Baccarat3 {
 			local_pokersNum = getPokersNum(_roomId); 
 			local_cards[i] = getCard(_roomId, local_pokersNum); 
 		}
+		emit LogCards(local_cards);
 		return local_cards;
 	}
 
@@ -154,7 +155,7 @@ contract Baccarat3 {
 		if(local_index == 0) {
 			shuffle(_roomId);
 			local_index = POKERS_NUM;
-			emit LogShuffle(local_index);
+			//emit LogShuffle(local_index);
 		}
 		uint256 local_key;
 		if(local_index==1) {

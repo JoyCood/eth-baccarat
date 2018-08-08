@@ -86,6 +86,7 @@ def b3_dealCard(room_id=DEFAULT_ROOM_ID):
     while True:
         if TOTAL_CARDS < 1:
             TOTAL_CARDS = 104
+            break
         if TOTAL_CARDS == 104:
             logger.info("card leave:{}".format(TOTAL_CARDS))
         txHash = contract.functions.dealCard(room_id).transact({
@@ -93,7 +94,7 @@ def b3_dealCard(room_id=DEFAULT_ROOM_ID):
         })
         output_transaction_result('b3_dealCard', txHash)
         TOTAL_CARDS -= 1
-        #time.sleep(1)
+        time.sleep(1)
     #result = contract.functions.dealCard(room_id).call()
     #logger.info(result)
 

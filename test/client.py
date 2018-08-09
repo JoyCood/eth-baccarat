@@ -32,7 +32,7 @@ contract = w3.eth.contract(address=contractAddress, abi=abiJson['abi'])
 
 w3.eth.defaultAccount = w3.eth.accounts[0]
 
-TOTAL_CARDS = 104
+TOTAL_CARDS = 1
 DEFAULT_ROOM_ID = 8
 
 def output_transaction_result(fun, txHash):
@@ -82,18 +82,14 @@ def b3_shuffle(room_id=DEFAULT_ROOM_ID):
     logger.info(result)
 
 def b3_dealCard(room_id=DEFAULT_ROOM_ID):
-    global TOTAL_CARDS
+    i = 1
     while True:
-        if TOTAL_CARDS < 1:
-            TOTAL_CARDS = 104
-            break
-        if TOTAL_CARDS == 104:
-            logger.info("card leave:{}".format(TOTAL_CARDS))
+        logger.info("deal times: {}".format(i))
         txHash = contract.functions.dealCard(room_id).transact({
             'gas': 4700000    
         })
         output_transaction_result('b3_dealCard', txHash)
-        TOTAL_CARDS -= 1
+        i += 1
         time.sleep(1)
     #result = contract.functions.dealCard(room_id).call()
     #logger.info(result)

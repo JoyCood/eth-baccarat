@@ -60,12 +60,22 @@ contract Baccarat3 {
         ]
 	];
 
+    enum UserType {DEFAULT, BANKER, PLAYER}
+	enum Winner {TIE, BANKER, PLAYER}
+
 	uint8 private constant POKERS_NUM = 8;
 
 	mapping(uint256 => uint8[][POKERS_NUM]) public cards;
 
 	event LogShuffle(uint256 shuffle);
 	event LogCards(uint8[] card);
+	event LogNeedMore(
+		uint8[] bankerCards, 
+		uint8   bankerPoints, 
+		uint8[] playerCards,
+		uint8   playerPoints
+	);
+	event LogTest(uint256 value);
 
 	function shuffle(uint256 _roomId) 
 	    public 
@@ -85,30 +95,204 @@ contract Baccarat3 {
 
 	function dealCard(uint256 _roomId) 
 	    public 
-		returns (uint8[]) 
 	{
-		uint8[] memory local_cards = new uint8[](4);
-        uint256 local_pokersNum;
-		for(uint256 i=0; i<4; i++) {
-			local_pokersNum = getPokersNum(_roomId); 
-			local_cards[i] = getCard(_roomId, local_pokersNum); 
+		uint8[] memory local_bankerCards = new uint8[](3);
+		uint8[] memory local_playerCards = new uint8[](3);
+		for(uint256 i=0; i<2; i++) {
+			local_bankerCards[i] = getCard(_roomId); 
+			local_playerCards[i] = getCard(_roomId);
 		}
-		emit LogCards(local_cards);
-		return local_cards;
+	    
+		UserType who = needMore(local_bankerCards, local_playerCards);
+		if (who == UserType.PLAYER) {
+	        local_playerCards[2] = getCard(_roomId);
+
+			who = needMore(local_bankerCards, local_playerCards);
+			if (who == UserType.BANKER) {
+		        local_bankerCards[2] = getCard(_roomId);	    
+			}
+		} else if (who == UserType.BANKER) {
+		    local_bankerCards[2] = getCard(_roomId);
+
+			who == needMore(local_bankerCards, local_playerCards);
+			if (who == UserType.PLAYER) {
+			    local_playerCards[2]= getCard(_roomId);
+			}
+		}
+
+		detectWinner(local_bankerCards, local_playerCards);
 	}
 
-	function getCard(uint256 _roomId, uint256 _pokersNum) 
+	//检测是否需要继续博牌
+	function needMore(uint8[] _bankerCards, uint8[] _playerCards)
+	    private
+		pure
+		returns (UserType)
+	{
+		uint256 local_bankerLength = cardsLength(_bankerCards);
+		uint256 local_playerLength = cardsLength(_playerCards);
+		//庄闲两家已各发了3张牌，无需再发
+		if (local_bankerLength == 3 && local_playerLength == 3) {
+		    return UserType.DEFAULT;
+		}
+
+        uint8 local_bankerPoints = points(_bankerCards);	
+		uint8 local_playerPoints = points(_playerCards);
+		if ( //庄闲手上各有2张牌，并且其中一家点数>=8点，无需再发
+			local_bankerLength == 2 
+			&& local_playerLength == 2 
+		    && (local_bankerPoints >= 8 || local_playerPoints >= 8)
+		) { 
+			return UserType.DEFAULT;
+		}
+
+		if ( //庄闲手上各有2张牌且闲家的点数>=6 && 庄家的点数<=5，需要给庄家再发
+		    local_playerLength == 2 
+			&& local_playerPoints >= 6
+			&& local_bankerLength == 2
+			&& local_bankerPoints <= 5
+		) {
+			return UserType.BANKER;
+		}
+
+		//闲家手上有2张牌且点数=<5，闲家需要再发一张牌
+		if (local_playerLength == 2 && local_playerPoints <= 5) {
+			return UserType.PLAYER;
+		}
+
+		//闲家手上有3张牌且庄家的点数=<2
+		if (local_playerLength == 3 && local_bankerPoints <= 2) {
+			return UserType.BANKER;
+		}
+
+	    uint8 local_playerLastCardPoint = points(_playerCards[2]);
+
+		if ( //闲家手上有3张牌 && 庄家的点数==3 && 闲家最后一张牌点数不为8
+			local_playerLength == 3 
+		    && local_bankerPoints == 3
+		    && local_playerLastCardPoint != 8
+		) {
+			return UserType.BANKER;
+		}
+
+		if (
+		    local_playerLength == 3
+			&& local_bankerPoints == 4
+		    && local_playerLastCardPoint >= 2
+			&& local_playerLastCardPoint <= 7
+		) { 
+			return UserType.BANKER;
+		}
+
+		if (
+	        local_playerLength == 3 
+			&& local_bankerPoints == 5
+            && local_playerLastCardPoint >= 4
+			&& local_playerLastCardPoint <= 7
+		) {
+			return UserType.BANKER;
+		}
+
+		if (
+		    local_playerLength == 3
+			&& local_bankerPoints == 6
+		    && local_playerLastCardPoint >= 6
+			&& local_playerLastCardPoint <= 7
+		) {
+			return UserType.BANKER;
+		}
+
+		return UserType.DEFAULT;
+	}
+
+	//判断是否为对子
+	function isPair(uint8[] _cards) 
+	    private
+		pure
+		returns (bool)
+	{
+        uint256 local_length = cardsLength(_cards);
+		if (local_length >= 2) {
+	        return points(_cards[0]) == points(_cards[1]);	
+		}
+		return false;
+	}
+
+	//检测手上有几张牌
+	function cardsLength(uint8[] _cards) 
+	    private
+		pure
+		returns (uint256 local_length) 
+	{
+	    for(uint256 i=0; i<_cards.length; i++) {
+	        if(_cards[i]>0) {
+			    local_length += 1;
+			}	
+		}
+	}
+
+	//获取一手牌的点数
+	function points(uint8[] _cards)
+	    private
+		pure
+		returns (uint8)
+	{
+        uint8 local_point = 0;	
+		uint256 local_length = cardsLength(_cards);
+
+		for(uint256 i=0; i<local_length; i++) {
+			if(_cards[i]>0) {
+		        local_point += points(_cards[i]);    
+			}
+		}
+
+		return local_point % 0x0A;
+	}
+    
+	//获取单张牌的点数
+	function points(uint8 _card)
+	    private
+		pure
+		returns (uint8) 
+	{
+        return ((_card & 0x0F) > 0x09) ? 0 : (_card & 0x0F);	
+	}
+
+	//检测胜出玩家
+	function detectWinner(uint8[] _bankerCards, uint8[] _playerCards)
+	    private
+		pure
+		returns (Winner)
+	{
+        uint8 local_bankerPoints = points(_bankerCards);	
+		uint8 local_playerPoints = points(_playerCards);
+
+		if (local_bankerPoints > local_playerPoints) {
+		   return Winner.BANKER;
+		}
+
+		if (local_bankerPoints < local_playerPoints) {
+		    return Winner.PLAYER;
+		}
+
+		return Winner.TIE;
+	}
+
+	function getCard(uint256 _roomId) 
 	    private 
 		returns(uint8) 
 	{
 		uint8 local_card;
-       
-        if(cards[_roomId][_pokersNum].length == 1) {
-		    local_card = cards[_roomId][_pokersNum][0];
-			removeCard(_roomId, _pokersNum, 0);
+        uint256 local_pokersNum;
+	    
+	    local_pokersNum = getPokersNum(_roomId);	
+
+        if(cards[_roomId][local_pokersNum].length == 1) {
+		    local_card = cards[_roomId][local_pokersNum][0];
+			removeCard(_roomId, local_pokersNum, 0);
 			return local_card;
 		}
-		uint256 local_upper = cards[_roomId][_pokersNum].length;
+		uint256 local_upper = cards[_roomId][local_pokersNum].length;
 		uint256 local_randomNum = 0;
 		uint256 local_seed = 0;
 
@@ -120,12 +304,12 @@ contract Baccarat3 {
         uint256 local_index = local_randomNum - 1;
         uint256 local_maxLoop = local_upper - 1;		
 
-		local_card = cards[_roomId][_pokersNum][local_index];
+		local_card = cards[_roomId][local_pokersNum][local_index];
         //将后面的牌往前移
 		for(uint256 i=local_index; i<local_maxLoop; i++) {
-	        cards[_roomId][_pokersNum][i] = cards[_roomId][_pokersNum][i+1];	
+	        cards[_roomId][local_pokersNum][i] = cards[_roomId][local_pokersNum][i+1];	
 		}
-        removeCard(_roomId, _pokersNum, local_maxLoop);
+        removeCard(_roomId, local_pokersNum, local_maxLoop);
 		return local_card;
 	}
 
@@ -183,7 +367,4 @@ contract Baccarat3 {
         uint256 seed = uint256(keccak256(local_randSeed));    	
 		local_num = (seed % _upper);
 	}
-
-	
-
 }

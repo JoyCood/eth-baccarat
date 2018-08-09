@@ -47,13 +47,50 @@ def check_cards_num():
     for card in right_cards:
         logger.info("{} = {}".format(card, cards.count(card)))
 
+def check_points(args):
+    v = 0
+    k = 0
+    banker_points = 0
+    player_points = 0
+    equal_banker_points = False
+    equal_player_points = False
+
+    for x in args['bankerCards']:
+        element = 0 if (x&15) > 9 else (x&15)
+        v += element
+
+    banker_points = v%10
+    if banker_points == args['bankerPoints']:
+        equal_banker_points = True
+
+    for y in args['playerCards']:
+        element = 0 if (y&15) > 9 else (y&15)
+        k += element
+    player_points = k%10
+    if player_points == args['playerPoints']:
+        equal_player_points = True
+    
+    if not equal_banker_points or not equal_player_points:
+        logger.info("equal_banker_points={} banker_points={}, equal_player_points={} player_points={}".format(
+                    equal_banker_points,
+                    banker_points, 
+                    equal_player_points,
+                    player_points
+                )
+        )
+        print("\n")
+        
+        
+
 def get_receipt(txHash):
     return w3.eth.waitForTransactionReceipt(txHash)
 
 def output_event_data(receipt):
-    global cards
     logger.info(receipt[0]['args'])
+    #check_points(receipt[0]['args'])
+
     '''
+    global cards
     cards += receipt[0]['args']['card']
     print(cards)
     logger.info("cards length: {}".format(len(cards)))
@@ -77,6 +114,16 @@ def shuffle_event(event):
     receipt = contract.events.LogShuffle().processReceipt(receipt)
     output_event_data(receipt)
 
+def need_more_event(event):
+    receipt = get_receipt(event['transactionHash'])
+    receipt = contract.events.LogNeedMore().processReceipt(receipt)
+    output_event_data(receipt)
+
+def test_event(event):
+    receipt = get_receipt(event['transactionHash'])
+    receipt = contract.events.LogTest().processReceipt(receipt)
+    output_event_data(receipt)
+
 def log_loop(event_filter, handler):
     while True:
         for event in event_filter.get_new_entries():
@@ -92,3 +139,9 @@ if __name__ == '__main__':
 
     block_filter = contract.events.LogShuffle.createFilter(fromBlock='latest')
     threading.Thread(target=log_loop, args=(block_filter, shuffle_event)).start()
+
+    block_filter = contract.events.LogNeedMore.createFilter(fromBlock='latest')
+    threading.Thread(target=log_loop, args=(block_filter, need_more_event)).start()
+
+    block_filter = contract.events.LogTest.createFilter(fromBlock='latest')
+    threading.Thread(target=log_loop, args=(block_filter, test_event)).start()

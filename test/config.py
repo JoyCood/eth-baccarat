@@ -1,3 +1,3 @@
-ContractAddress = '0xfb09b9bada3d5eede5808f2a53e4b96603780612'
+ContractAddress = '0x119a1e49c17766be67cb376e60d96e0d5dc580bb'
 
 IPC_PATH = '/Users/knight/Documents/geth/node4/geth.ipc'

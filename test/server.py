@@ -23,7 +23,7 @@ DATEFMT = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(level=LEVEL, format=FORMAT, datefmt=DATEFMT)
 logger = logging.getLogger()
 
-abiFile = "../build/contracts/Baccarat3.json"
+abiFile = "../build/contracts/Baccarat4.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
 
@@ -40,6 +40,24 @@ def output_event_data(receipt):
     logger.info(receipt[0]['args'])
     print('\n')
 
+def player_need_event(event):
+    receipt = get_receipt(event['transactionHash'])
+    receipt = contract.events.LogDebugPlayerNeed().processReceipt(receipt)
+    output_event_data(receipt)
+
+def banker_need_event(event):
+    receipt = get_receipt(event['transactionHash'])
+    receipt = contract.events.LogDebugBankerNeed().processReceipt(receipt)
+    #output_event_data(receipt)
+    if receipt[0]['args']['bankerPoints'] == 6:
+        logger.info(receipt[0]['args'])
+        print('\n')
+
+def pairs_event(event):
+    receipt = get_receipt(event['transactionHash'])
+    receipt = contract.events.LogDebugIsPairs().processReceipt(receipt)
+    output_event_data(receipt)
+
 def winner_event(event):
     receipt = get_receipt(event['transactionHash'])
     receipt = contract.events.LogWinner().processReceipt(receipt)
@@ -52,5 +70,18 @@ def log_loop(event_filter, handler):
         time.sleep(2)
 
 if __name__ == '__main__':
+    #开牌结果测试
     block_filter = contract.events.LogWinner.createFilter(fromBlock='latest')
     threading.Thread(target=log_loop, args=(block_filter, winner_event)).start()
+
+    #闲家博牌测试
+    block_filter = contract.events.LogDebugPlayerNeed.createFilter(fromBlock='latest')
+    #threading.Thread(target=log_loop, args=(block_filter, player_need_event)).start()
+
+    #庄家博牌测试
+    block_filter = contract.events.LogDebugBankerNeed.createFilter(fromBlock='latest')
+    #threading.Thread(target=log_loop, args=(block_filter, banker_need_event)).start()
+
+    #对子测试
+    block_filter = contract.events.LogDebugIsPairs.createFilter(fromBlock='latest')
+    #threading.Thread(target=log_loop, args=(block_filter, pairs_event)).start()

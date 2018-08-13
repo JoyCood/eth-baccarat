@@ -20,7 +20,7 @@ DATEFMT = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(level=LEVEL, format=FORMAT, datefmt=DATEFMT)
 logger = logging.getLogger()
 
-abiFile = "../build/contracts/Baccarat3.json"
+abiFile = "../build/contracts/Baccarat4.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
 

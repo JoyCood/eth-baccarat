@@ -2,6 +2,7 @@ pragma solidity 0.4.24;
 
 import "./Basic.sol";
 
+//服务器版本(有房间的概念)
 contract Baccarat4 is Basic {
     mapping(uint256 => uint8[][POKERS_NUM]) private cards;    
 
@@ -117,47 +118,4 @@ contract Baccarat4 is Basic {
 		return randomPoker(local_pokers, local_index);
 	}
 
-	//检测闲家是否需要博牌
-    function debugPlayeNeed(uint8[] _cards) private {
-		bool local_need;
-		uint8 local_points;
-
-		local_points = points(_cards);
-		local_need = playerNeedMore(_cards); 
-
-		emit LogDebugPlayerNeed(
-	        _cards,
-			local_points,
-			local_need
-		);
-	}
-
-	//检测庄家是否需要博牌
-	function debugBankerNeed(uint8[] _playerCards, uint8[] _bankerCards)
-	    private
-	{
-	    bool local_need;
-		uint8 local_playerLastCardPoints;
-		uint8 local_bankerPoints;
-
-		local_playerLastCardPoints = points(_playerCards[2]); //闲家一手牌的点数 
-		local_bankerPoints = points(_bankerCards); //庄家2张牌的点数
-        local_need = bankerNeedMore(_playerCards, _bankerCards);
-		
-		emit LogDebugBankerNeed(
-			_playerCards,
-		    _bankerCards,
-			local_playerLastCardPoints,
-			local_bankerPoints,
-			local_need
-		);
-	}
-
-	//检测是否是对子
-	function debugPairs(uint8[] _cards)
-	    private
-	{
-        bool local_isPairs = isPair(_cards);	
-		emit LogDebugIsPairs(_cards, local_isPairs);
-	}
 }

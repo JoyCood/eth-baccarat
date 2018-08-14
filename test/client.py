@@ -20,7 +20,7 @@ DATEFMT = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(level=LEVEL, format=FORMAT, datefmt=DATEFMT)
 logger = logging.getLogger()
 
-abiFile = "../build/contracts/Baccarat4.json"
+abiFile = "../build/contracts/Baccarat5.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
 
@@ -94,8 +94,20 @@ def b3_dealCard(room_id=DEFAULT_ROOM_ID):
     #result = contract.functions.dealCard(room_id).call()
     #logger.info(result)
 
+def b5_dealCard():
+    i = 1
+    while True:
+        logger.info("deal times: {}".format(i))
+        txHash = contract.functions.dealCard().transact({
+            'gas': 4700000    
+        })
+        output_transaction_result('b5_dealCard', txHash)
+        i += 1
+        time.sleep(1)
+
 if __name__ == '__main__':
     #shuffle_call()
     #assign_card()
     #b3_shuffle()
-    b3_dealCard()
+    #b3_dealCard()
+    b5_dealCard()

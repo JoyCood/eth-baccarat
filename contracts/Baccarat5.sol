@@ -2,9 +2,11 @@ pragma solidity 0.4.24;
 
 import "./Basic.sol";
 
+//单机版(无房间概念)
 contract Baccarat5 is Basic {
     uint8[][POKERS_NUM] private cards;    
 
+	//洗牌
 	function shuffle()
 	    private
 		returns (bool)
@@ -13,6 +15,7 @@ contract Baccarat5 is Basic {
 		return true;
 	}
 
+	//开牌
 	function dealCard()
 	    public
 	{
@@ -23,11 +26,17 @@ contract Baccarat5 is Basic {
 			local_bankerCards[i] = getCard(); 
 			local_playerCards[i] = getCard();
 		}
+        
+		//debugPlayeNeed(local_playerCards); //闲家博牌测试
+		//debugPairs(local_playerCards); //闲家对子测试
 
 	    bool need = playerNeedMore(local_playerCards);
 		if (need) { //闲家需要博牌
 		    local_playerCards[2] = getCard();
 		}
+
+        //debugBankerNeed(local_playerCards, local_bankerCards); //庄家博牌测试
+		//debugPairs(local_bankerCards); //庄家对子测试
 
 		need = bankerNeedMore(local_playerCards, local_bankerCards);
 		if (need) { //庄家需要博牌
@@ -37,30 +46,15 @@ contract Baccarat5 is Basic {
 		Winner local_winner = detectWinner(local_bankerCards, local_playerCards);
 		bool local_bankerPair = isPair(local_bankerCards);
 		bool local_playerPair = isPair(local_playerCards);
-
-		if (DEBUG) {
-			/*
-			emit LogDebugWinner(
-				local_bankerCards,
-				local_playerCards,
-				points(local_bankerCards),
-				points(local_playerCards),
-				local_winner,
-				local_bankerPair,
-				local_playerPair
-			);
-		   */
-		} else {
-			emit LogWinner(
-				local_bankerCards,
-				local_playerCards,
-				points(local_bankerCards),
-				points(local_playerCards),
-				local_winner,
-				local_bankerPair,
-				local_playerPair
-			);
-		}
+		emit LogWinner(
+			local_bankerCards,
+			local_playerCards,
+			points(local_bankerCards),
+			points(local_playerCards),
+			local_winner,
+			local_bankerPair,
+			local_playerPair
+		);
 	}
 
 	//随机抽取一张牌

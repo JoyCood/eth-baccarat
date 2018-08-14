@@ -84,10 +84,6 @@ contract Basic {
 	    bool    pairs	
 	);
 
-	event LogBankerNeed(
-	    uint8 value
-	);
-
 	event LogWinner(
 	    uint8[] bankerCards,
 		uint8[] playerCards,
@@ -254,12 +250,25 @@ contract Basic {
 		uint8 local_index = 0;
 
 		for (uint8 i=0; i<POKERS_NUM; i++) {
-	        if (_cards[i].length != 0) {
+	        if (_cards[i].length > 0) {
 			    local_pokers[local_index] = i;
 				local_index += 1;
 			}	
 		}
-        return (local_pokers, local_index);    	
+		return (local_pokers, local_index);
+	}
+
+	//还剩几张牌
+	function cardsAlive(uint8[][POKERS_NUM] _cards)
+	    internal
+		pure
+		returns (uint256 local_total)
+	{
+	    for (uint8 i=0; i<POKERS_NUM; i++) {
+		    if (_cards[i].length > 0) {
+			    local_total += _cards[i].length;
+			}
+		}	
 	}
 
 	//从_pokersMap中随机选取一副牌
@@ -298,5 +307,51 @@ contract Basic {
 		returns (uint8) 
 	{
         return ((_card & 0x0F) > 0x09) ? 0 : (_card & 0x0F);	
+	}
+
+	//检测闲家是否需要博牌
+    function debugPlayeNeed(uint8[] _cards) 
+	    internal 
+	{
+		bool local_need;
+		uint8 local_points;
+
+		local_points = points(_cards);
+		local_need = playerNeedMore(_cards); 
+
+		emit LogDebugPlayerNeed(
+	        _cards,
+			local_points,
+			local_need
+		);
+	}
+
+	//检测庄家是否需要博牌
+	function debugBankerNeed(uint8[] _playerCards, uint8[] _bankerCards)
+	    internal
+	{
+	    bool local_need;
+		uint8 local_playerLastCardPoints;
+		uint8 local_bankerPoints;
+
+		local_playerLastCardPoints = points(_playerCards[2]); //闲家一手牌的点数 
+		local_bankerPoints = points(_bankerCards); //庄家2张牌的点数
+        local_need = bankerNeedMore(_playerCards, _bankerCards);
+		
+		emit LogDebugBankerNeed(
+			_playerCards,
+		    _bankerCards,
+			local_playerLastCardPoints,
+			local_bankerPoints,
+			local_need
+		);
+	}
+
+	//检测是否是对子
+	function debugPairs(uint8[] _cards)
+	    internal
+	{
+        bool local_isPairs = isPair(_cards);	
+		emit LogDebugIsPairs(_cards, local_isPairs);
 	}
 }

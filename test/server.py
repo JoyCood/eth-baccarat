@@ -23,7 +23,7 @@ DATEFMT = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(level=LEVEL, format=FORMAT, datefmt=DATEFMT)
 logger = logging.getLogger()
 
-abiFile = "../build/contracts/Baccarat4.json"
+abiFile = "../build/contracts/Baccarat5.json"
 with open(abiFile, 'r') as abiDefinition:
     abiJson = json.load(abiDefinition)
 
@@ -85,3 +85,4 @@ if __name__ == '__main__':
     #对子测试
     block_filter = contract.events.LogDebugIsPairs.createFilter(fromBlock='latest')
     #threading.Thread(target=log_loop, args=(block_filter, pairs_event)).start()
+

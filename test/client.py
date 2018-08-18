@@ -105,9 +105,14 @@ def b5_dealCard():
         i += 1
         time.sleep(1)
 
+def bet():
+    txHash = contract.functions.bet().transact({'gas': 4700000})
+    output_transaction_result('bet', txHash)
+
 if __name__ == '__main__':
     #shuffle_call()
     #assign_card()
     #b3_shuffle()
     #b3_dealCard()
-    b5_dealCard()
+    #b5_dealCard()
+    bet()

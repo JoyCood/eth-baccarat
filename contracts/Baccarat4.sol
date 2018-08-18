@@ -64,7 +64,7 @@ contract Baccarat4 is Basic {
 		returns(uint8) 
 	{
 		uint8 local_card;
-        uint256 local_pokersNum;
+        uint8 local_pokersNum;
 	    
 	    local_pokersNum = getPokersNum(_roomId);	
 

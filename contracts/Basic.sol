@@ -62,8 +62,8 @@ contract Basic {
 	bool internal constant DEBUG = false;
     uint8 internal constant POKERS_NUM = 8;
     
-	//和局 庄胜 闲胜
-	enum Winner {TIE, BANKER, PLAYER}
+	//和局 庄胜 闲胜 庄对 闲对
+	enum Winner {TIE, BANKER, PLAYER, BANKER_PAIRS, PLAYER_PAIRS}
 
 	event LogDebugPlayerNeed(
 		uint8[] cards,
@@ -97,6 +97,12 @@ contract Basic {
 	modifier maxPokersAllow(uint8 _num) {
 	   assert(_num <= POKERS_NUM); 
 	   _;
+	}
+
+	constructor() 
+	    public 
+	{
+		
 	}
 
 	//闲家是否需要博牌
@@ -308,7 +314,7 @@ contract Basic {
 	{
         return ((_card & 0x0F) > 0x09) ? 0 : (_card & 0x0F);	
 	}
-
+/*
 	//检测闲家是否需要博牌
     function debugPlayeNeed(uint8[] _cards) 
 	    internal 
@@ -354,4 +360,5 @@ contract Basic {
         bool local_isPairs = isPair(_cards);	
 		emit LogDebugIsPairs(_cards, local_isPairs);
 	}
+   */
 }

@@ -19,7 +19,8 @@ contract Baccarat5 is Basic {
     function bet(uint256[5] _values) 
 	  public
 	{
-        uint256 local_value;	
+        uint256 local_winValue; //赢多少钱	
+		uint256 local_loseValue; //输多少钱
 		uint8 local_tie = uint8(Winner.TIE);
 		uint8 local_banker = uint8(Winner.BANKER);
 		uint8 local_player = uint8(Winner.PLAYER);
@@ -27,30 +28,36 @@ contract Baccarat5 is Basic {
 		uint8 local_pPairs = uint8(Winner.PLAYER_PAIRS);
 	
 		(uint8 local_winner, bool local_bankerPairs, bool local_playerPairs) = dealCard();
-
-		//和局
-		if (local_winner == local_tie && (_values[local_tie] > 0)) { //1赔8 + 本金 	
-			local_value = local_value.add(_values[local_tie].mul(9)); 
-		} else if (local_winner == local_banker && (_values[local_banker] > 0)) { //庄赢 2倍 = (本金 + 1赔1)
-			local_value = local_value.add(_values[local_banker].mul(2)); 
-		} else if (local_winner == local_player && (_values[local_player]) > 0) { //闲赢 2倍 = (本金 + 1赔1)
-		    local_value = local_value.add(_values[local_player].mul(2)); 
+		for (uint8 i=0; i<3; i++) {
+		    if (i==local_winner && _values[i]>0 ) { //押对了
+				if(local_winner == local_tie) { //和局 //1赔8 + 本金
+			        local_winValue = local_winValue.add(_values[i].mul(9)); 
+				} else if (local_winner == local_banker) {  //庄赢 2倍 = (本金 + 1赔1)
+			        local_winValue = local_winValue.add(_values[i].mul(2));	
+				} else if (local_winner == local_player) {  //闲赢 2倍 = (本金 + 1赔1)
+				    local_winValue = local_winValue.add(_values[i].mul(2));
+				}
+			} else if (_values[i] > 0) { //押错了
+		        local_loseValue = local_loseValue.add(_values[i]);	
+			}
+		}
+		if (local_bankerPairs && (_values[local_bPairs] > 0) ) {//庄对子 1赔11 + 本金 
+		    local_winValue = local_winValue.add(_values[local_bPairs].mul(12));
+		} else if (_values[local_bPairs] > 0 ) { //庄没有对子，扣除对应筹码
+		    local_loseValue = local_loseValue.add(_values[local_bPairs]);
 		}
 
-		if (local_bankerPairs && (_values[local_bPairs] > 0)) { //庄对 1赔11 + 本金 
-	        local_value = local_value.add(_values[local_pPairs].mul(12));	
-		} 
+		if (local_playerPairs && (_values[local_pPairs] > 0) ) {//闲对子 1赔11 + 本金 
+		    local_winValue = local_winValue.add(_values[local_pPairs].mul(12));
+		} else if (_values[local_pPairs] > 0 ) { //闲没有对子，扣除对应筹码
+		    local_loseValue = local_loseValue.add(_values[local_pPairs]);
+		}
 
-		if (local_playerPairs && (_values[local_pPairs] > 0)) { //闲对 1赔11 + 本金
-		    local_value = local_value.add(_values[local_pPairs].mul(12));
+		if ((local_winValue - local_loseValue) > 0) { //赢钱了 
+		    token.transfer(msg.sender, (local_winValue-local_loseValue));
+		} else if ((local_loseValue - local_winValue ) > 0) { //输钱了
+		    token.transferFrom(msg.sender, address(this), (local_loseValue-local_winValue));
 		}
-/*
-		if (local_value > 0) { 
-		    token.transfer(msg.sender, local_value);
-		} else if (local_value != 0) {
-		    token.transferFrom(msg.sender, address(this), local_value);
-		}
-	   */
 	}
 
 	//洗牌

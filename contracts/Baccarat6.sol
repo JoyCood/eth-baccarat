@@ -13,16 +13,6 @@ contract Baccarat6 is Basic2 {
     uint8[] private cards; //牌列表    
 	mapping(uint8 => uint8) private leftover; //每张牌剩余数量
 
-	event LogWinner(
-	    uint8[] bankerCards,
-		uint8[] playerCards,
-		uint8 bankerPoints,
-		uint8 playerPoints,
-		Winner winner,
-		bool bankerPairs,
-		bool playerPairs
-	);
-    
 	constructor(PocketToken _token) public {
 	    token = _token;
 	}

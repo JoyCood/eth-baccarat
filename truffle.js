@@ -22,10 +22,10 @@ module.exports = {
 	  development: {
 	      host: '127.0.0.1',
 		  port: 8545,
-		  network_id: '2018',
+		  network_id: '*',
 		  gas: 4700000,
-		  from: '0x07ca5e2235e3ebd0b6a60de8d6c0df82b11bae0f'
-		  //from: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
+		  //from: '0x07ca5e2235e3ebd0b6a60de8d6c0df82b11bae0f'
+		  from: '0x627306090abab3a6e1400e9345bc60c78a8bef57'
 	  }
 	}
 };
